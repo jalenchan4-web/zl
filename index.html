@@ -6,6 +6,7 @@
     <title>八字命盘工作台</title>
     <link rel="preconnect" href="https://unpkg.com" />
     <link rel="stylesheet" href="./styles.css" />
+    <script src="./lunar.js" defer></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
     <script src="./app.js" defer></script>
   </head>
@@ -29,6 +30,15 @@
             </button>
           </div>
           <form id="compatibility-form" class="people-grid">
+            <div class="calculation-options">
+              <label>
+                子时流派
+                <select name="zi-sect">
+                  <option value="1" selected>23点后按次日</option>
+                  <option value="2">子时不换日</option>
+                </select>
+              </label>
+            </div>
             <fieldset class="person-form" data-person="a">
               <legend id="a-legend">本人</legend>
               <label>

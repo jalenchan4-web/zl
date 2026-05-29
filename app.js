@@ -115,13 +115,14 @@ let currentMode = "single";
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   const data = new FormData(form);
-  const personA = readPerson(data, "a");
+  const options = readCalculationOptions(data);
+  const personA = readPerson(data, "a", options);
   const chartA = buildChart(personA);
   if (currentMode === "single") {
     const report = buildPersonalReport(chartA);
     renderPersonalReport(chartA, report);
   } else {
-    const personB = readPerson(data, "b");
+    const personB = readPerson(data, "b", options);
     const chartB = buildChart(personB);
     const report = buildCompatibility(chartA, chartB);
     renderCompatibilityReport(chartA, chartB, report);
@@ -181,22 +182,30 @@ function setValue(name, value) {
   form.elements[name].value = value;
 }
 
-function readPerson(data, prefix) {
+function readCalculationOptions(data) {
+  return {
+    ziSect: Number(data.get("zi-sect") || 1)
+  };
+}
+
+function readPerson(data, prefix, options) {
   return {
     name: String(data.get(`${prefix}-name`) || "").trim(),
     gender: data.get(`${prefix}-gender`),
     place: String(data.get(`${prefix}-place`) || "").trim(),
     date: data.get(`${prefix}-date`),
-    time: data.get(`${prefix}-time`)
+    time: data.get(`${prefix}-time`),
+    options
   };
 }
 
 function buildChart(person) {
   const date = new Date(`${person.date}T${person.time || "12:00"}:00`);
-  const yearPillar = getYearPillar(date);
-  const monthPillar = getMonthPillar(date, yearPillar.stem);
-  const dayPillar = getDayPillar(date);
-  const hourPillar = person.time ? getHourPillar(date, dayPillar.stem) : null;
+  const libraryPillars = getLibraryPillars(date, Boolean(person.time), person.options?.ziSect || 1);
+  const yearPillar = libraryPillars.year;
+  const monthPillar = libraryPillars.month;
+  const dayPillar = libraryPillars.day;
+  const hourPillar = libraryPillars.hour;
   const pillars = [yearPillar, monthPillar, dayPillar, hourPillar];
   const dayMaster = dayPillar.stem;
   const scores = elementScores(pillars);
@@ -212,7 +221,38 @@ function buildChart(person) {
     strength,
     favors,
     zodiac,
+    eightChar: libraryPillars.raw,
     tenGods: pillars.map((pillar, index) => pillar && index !== 2 ? tenGod(dayMaster, pillar.stem) : "日主")
+  };
+}
+
+function getLibraryPillars(date, hasTime, ziSect) {
+  if (!window.Solar) {
+    throw new Error("专业排盘库 lunar.js 未加载，无法计算八字。");
+  }
+  const solar = window.Solar.fromYmdHms(
+    date.getFullYear(),
+    date.getMonth() + 1,
+    date.getDate(),
+    hasTime ? date.getHours() : 12,
+    hasTime ? date.getMinutes() : 0,
+    0
+  );
+  const eightChar = solar.getLunar().getEightChar();
+  eightChar.setSect(ziSect);
+  return {
+    year: parseGanZhi(eightChar.getYear()),
+    month: parseGanZhi(eightChar.getMonth()),
+    day: parseGanZhi(eightChar.getDay()),
+    hour: hasTime ? parseGanZhi(eightChar.getTime()) : null,
+    raw: eightChar
+  };
+}
+
+function parseGanZhi(value) {
+  return {
+    stem: value.slice(0, 1),
+    branch: value.slice(1, 2)
   };
 }
 

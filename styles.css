@@ -150,6 +150,18 @@ h1 {
   grid-template-columns: minmax(0, 1fr);
 }
 
+.calculation-options {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 2px;
+}
+
+.calculation-options label {
+  width: min(260px, 100%);
+  margin-bottom: 0;
+}
+
 .person-form {
   min-width: 0;
   margin: 0;
