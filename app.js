@@ -87,25 +87,6 @@ const zodiacElementPairs = {
   土象: "水象",
   水象: "土象"
 };
-const monthStarts = [
-  { m: 2, d: 4, branch: "寅" },
-  { m: 3, d: 6, branch: "卯" },
-  { m: 4, d: 5, branch: "辰" },
-  { m: 5, d: 6, branch: "巳" },
-  { m: 6, d: 6, branch: "午" },
-  { m: 7, d: 7, branch: "未" },
-  { m: 8, d: 8, branch: "申" },
-  { m: 9, d: 8, branch: "酉" },
-  { m: 10, d: 8, branch: "戌" },
-  { m: 11, d: 7, branch: "亥" },
-  { m: 12, d: 7, branch: "子" },
-  { m: 1, d: 6, branch: "丑" }
-];
-const hourBranches = [
-  { start: 23, branch: "子" }, { start: 1, branch: "丑" }, { start: 3, branch: "寅" }, { start: 5, branch: "卯" },
-  { start: 7, branch: "辰" }, { start: 9, branch: "巳" }, { start: 11, branch: "午" }, { start: 13, branch: "未" },
-  { start: 15, branch: "申" }, { start: 17, branch: "酉" }, { start: 19, branch: "戌" }, { start: 21, branch: "亥" }
-];
 
 const form = document.querySelector("#compatibility-form");
 const results = document.querySelector("#results");
@@ -256,67 +237,6 @@ function parseGanZhi(value) {
   };
 }
 
-function getYearPillar(date) {
-  const year = date.getFullYear();
-  const afterLiChun = date.getMonth() + 1 > 2 || (date.getMonth() + 1 === 2 && date.getDate() >= 4);
-  const ganzhiYear = afterLiChun ? year : year - 1;
-  const index = mod(ganzhiYear - 4, 60);
-  return pillarFromIndex(index);
-}
-
-function getMonthPillar(date, yearStem) {
-  const monthBranch = getMonthBranch(date);
-  const branchOffset = mod(branches.indexOf(monthBranch) - branches.indexOf("寅"), 12);
-  const yearStemIndex = stems.indexOf(yearStem);
-  const startStem = [0, 5].includes(yearStemIndex) ? 2 :
-    [1, 6].includes(yearStemIndex) ? 4 :
-      [2, 7].includes(yearStemIndex) ? 6 :
-        [3, 8].includes(yearStemIndex) ? 8 : 0;
-  return {
-    stem: stems[mod(startStem + branchOffset, 10)],
-    branch: monthBranch
-  };
-}
-
-function getMonthBranch(date) {
-  const md = (date.getMonth() + 1) * 100 + date.getDate();
-  let branch = "丑";
-  for (const item of monthStarts) {
-    const value = item.m * 100 + item.d;
-    if (item.m === 1) {
-      if (md >= value && md < 204) branch = item.branch;
-    } else if (md >= value) {
-      branch = item.branch;
-    }
-  }
-  return branch;
-}
-
-function getDayPillar(date) {
-  const adjusted = new Date(date);
-  if (adjusted.getHours() >= 23) adjusted.setDate(adjusted.getDate() + 1);
-  const y = adjusted.getFullYear();
-  const m = adjusted.getMonth() + 1;
-  const d = adjusted.getDate();
-  const jdn = gregorianToJdn(y, m, d);
-  return pillarFromIndex(mod(jdn + 11, 60));
-}
-
-function getHourPillar(date, dayStem) {
-  const hour = date.getHours();
-  const branch = hour === 23 || hour === 0 ? "子" : hourBranchFor(hour);
-  const dayStemIndex = stems.indexOf(dayStem);
-  const ziStem = [0, 5].includes(dayStemIndex) ? 0 :
-    [1, 6].includes(dayStemIndex) ? 2 :
-      [2, 7].includes(dayStemIndex) ? 4 :
-        [3, 8].includes(dayStemIndex) ? 6 : 8;
-  const offset = branches.indexOf(branch);
-  return {
-    stem: stems[mod(ziStem + offset, 10)],
-    branch
-  };
-}
-
 function getZodiacSign(date) {
   const month = date.getMonth() + 1;
   const day = date.getDate();
@@ -329,28 +249,6 @@ function getZodiacSign(date) {
     return (month > startMonth || (month === startMonth && day >= startDay)) &&
       (month < endMonth || (month === endMonth && day <= endDay));
   });
-}
-
-function hourBranchFor(hour) {
-  let branch = "子";
-  for (const item of hourBranches) {
-    if (hour >= item.start) branch = item.branch;
-  }
-  return branch;
-}
-
-function gregorianToJdn(y, m, d) {
-  const a = Math.floor((14 - m) / 12);
-  const year = y + 4800 - a;
-  const month = m + 12 * a - 3;
-  return d + Math.floor((153 * month + 2) / 5) + 365 * year + Math.floor(year / 4) - Math.floor(year / 100) + Math.floor(year / 400) - 32045;
-}
-
-function pillarFromIndex(index) {
-  return {
-    stem: stems[mod(index, 10)],
-    branch: branches[mod(index, 12)]
-  };
 }
 
 function tenGod(dayStem, otherStem) {
@@ -543,7 +441,7 @@ function sharedSanHe(a, b) {
 }
 
 function annualRhythm(a, b, year) {
-  const current = pillarFromIndex(mod(year - 4, 60));
+  const current = getAnnualPillar(year);
   let score = 0;
   for (const chart of [a, b]) {
     const dayBranch = chart.pillars[2].branch;
@@ -556,7 +454,7 @@ function annualRhythm(a, b, year) {
 }
 
 function annualPersonalRhythm(chart, year) {
-  const current = pillarFromIndex(mod(year - 4, 60));
+  const current = getAnnualPillar(year);
   const dayBranch = chart.pillars[2].branch;
   const yearBranch = chart.pillars[0].branch;
   const dayRelation = orderedPair(dayBranch, current.branch);
@@ -570,6 +468,14 @@ function annualPersonalRhythm(chart, year) {
   if (liuHe.has(yearRelation)) score += 4;
   if (clashes.has(yearRelation)) score -= 4;
   return { score, current };
+}
+
+function getAnnualPillar(year) {
+  if (!window.Solar) {
+    throw new Error("专业排盘库 lunar.js 未加载，无法计算流年。");
+  }
+  const exactYearGanZhi = window.Solar.fromYmdHms(year, 6, 15, 12, 0, 0).getLunar().getYearInGanZhiExact();
+  return parseGanZhi(exactYearGanZhi);
 }
 
 function relationshipType(total, attraction, stability, complement) {
@@ -950,9 +856,8 @@ function buildCoupleCurves(a, b) {
 
 function curvePoint(chart, birthYear, age, type) {
   const rhythm = annualPersonalRhythm(chart, birthYear + age);
-  const wave = Math.sin((age + stems.indexOf(chart.dayMaster) * 3) / 8) * 6;
   const yearTenGod = tenGod(chart.dayMaster, rhythm.current.stem);
-  let score = 55 + rhythm.score + wave;
+  let score = 55 + rhythm.score;
   if (type === "life") score += personalVitalityScore(chart) * 0.18 - 10;
   if (type === "career") {
     score += personalCareerScore(chart) * 0.18 - 10;
@@ -971,7 +876,7 @@ function coupleCurvePoint(a, b, baseYear, age, type) {
   const year = baseYear + age;
   const rhythm = annualRhythm(a, b, year);
   const interactions = pillarInteractions(a, b);
-  let score = 54 + rhythm.score + Math.sin((age + sharedSanHe(a, b) * 5) / 9) * 5;
+  let score = 54 + rhythm.score;
   if (type === "life") score += interactions.harmony * 5 - interactions.friction * 2 + mutualFavorScore(a, b) * 1.2;
   if (type === "career") score += mutualFavorScore(a, b) * 2.4 + balanceScore(a, b) * 0.6;
   if (type === "love") score += interactions.affinity * 4 - interactions.branchClashes * 4 + dayMasterEffect(a, b);
@@ -1123,6 +1028,7 @@ function renderLifeCurves(curves) {
   const ages = allPoints.map((point) => point.age);
   const grid = ages.map((age) => `<line class="curve-grid" x1="${xFor(age)}" y1="${padding.top}" x2="${xFor(age)}" y2="${height - padding.bottom}" />`).join("");
   const labels = ages.map((age) => `<text class="curve-age" x="${xFor(age)}" y="${height - 18}" text-anchor="middle">${age}岁</text>`).join("");
+  const nodeAnalyses = buildCurveNodeAnalyses(curves);
   const lines = curves.map((curve, index) => {
     const offset = offsets[curve.key] || 0;
     const last = curve.points[curve.points.length - 1];
@@ -1154,7 +1060,62 @@ function renderLifeCurves(curves) {
       <text class="curve-age" x="20" y="${yFor(50) + 4}">平</text>
       <text class="curve-age" x="20" y="${yFor(25) + 4}">弱</text>
     </svg>
+    <div class="curve-node-grid">
+      ${nodeAnalyses.map((node) => `
+        <section class="curve-node-card ${node.key}">
+          <strong>${node.label} · ${node.kind}</strong>
+          <p>${node.age}岁 / ${node.year}年 / 流年${node.pillar}，指数${node.value}。</p>
+          <p>${node.text}</p>
+        </section>
+      `).join("")}
+    </div>
   `;
+}
+
+function buildCurveNodeAnalyses(curves) {
+  return curves.flatMap((curve) => {
+    const sorted = [...curve.points].sort((a, b) => b.value - a.value);
+    const high = sorted[0];
+    const low = sorted[sorted.length - 1];
+    const turn = curve.points.slice(1).reduce((best, point, index) => {
+      const prev = curve.points[index];
+      const diff = Math.abs(point.value - prev.value);
+      return diff > best.diff ? { point, prev, diff } : best;
+    }, { point: curve.points[1], prev: curve.points[0], diff: 0 });
+    return [
+      describeCurveNode(curve, high, "高点"),
+      describeCurveNode(curve, low, "低点"),
+      describeCurveTurn(curve, turn)
+    ];
+  });
+}
+
+function describeCurveNode(curve, point, kind) {
+  const relation = kind === "高点" ? "此节点在该线中相对较强，代表相关主题更容易被流年引动并形成机会。" : "此节点在该线中相对较弱，代表相关主题需要保守经营、减少冒进。";
+  return {
+    key: curve.key,
+    label: curve.label,
+    kind,
+    age: point.age,
+    year: point.year,
+    pillar: point.pillar,
+    value: point.value,
+    text: `${relation} 具体仍需结合现实选择、环境和当年实际事件校准。`
+  };
+}
+
+function describeCurveTurn(curve, turn) {
+  const direction = turn.point.value >= turn.prev.value ? "上行转折" : "下行转折";
+  return {
+    key: curve.key,
+    label: curve.label,
+    kind: direction,
+    age: `${turn.prev.age}-${turn.point.age}`,
+    year: `${turn.prev.year}-${turn.point.year}`,
+    pillar: `${turn.prev.pillar}→${turn.point.pillar}`,
+    value: `${turn.prev.value}→${turn.point.value}`,
+    text: `该阶段是${curve.label}变化幅度最大的区间，适合重点回看相关人生主题的选择、关系和外部环境变化。`
+  };
 }
 
 function renderChart(prefix, chart) {
@@ -1180,8 +1141,4 @@ function renderList(selector, items) {
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
-}
-
-function mod(value, base) {
-  return ((value % base) + base) % base;
 }

@@ -150,6 +150,27 @@ h1 {
   grid-template-columns: minmax(0, 1fr);
 }
 
+.privacy-note {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(46, 107, 87, 0.28);
+  border-radius: 6px;
+  background: rgba(46, 107, 87, 0.08);
+  color: #365a4c;
+  font-size: 0.84rem;
+  font-weight: 760;
+  line-height: 1.55;
+}
+
+.privacy-note i {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
 .calculation-options {
   grid-column: 1 / -1;
   display: flex;
@@ -506,6 +527,45 @@ h3 {
   min-height: 300px;
 }
 
+.curve-node-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0 16px 16px;
+}
+
+.curve-node-card {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgba(255, 253, 248, 0.84);
+}
+
+.curve-node-card strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.92rem;
+}
+
+.curve-node-card p {
+  margin-bottom: 6px;
+  color: #4b4238;
+  font-size: 0.84rem;
+  line-height: 1.58;
+}
+
+.curve-node-card.life strong {
+  color: #006d77;
+}
+
+.curve-node-card.career strong {
+  color: #9b5700;
+}
+
+.curve-node-card.love strong {
+  color: #a5284d;
+}
+
 .curve-axis {
   stroke: rgba(91, 80, 69, 0.24);
   stroke-width: 1;
@@ -766,6 +826,7 @@ h3 {
   .report-layout,
   .detail-grid,
   .insight-grid,
+  .curve-node-grid,
   .timeline {
     grid-template-columns: 1fr;
   }
