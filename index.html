@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>八字命盘工作台</title>
+    <link rel="preconnect" href="https://unpkg.com" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace-hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">Bazi Reading Studio</p>
+          <h1 id="page-title">八字命盘<br />工作台</h1>
+          <p class="lead">单人可看命盘、职业、人生曲线；双人可看合盘、缘分结构、事业生活匹配与发展节奏。</p>
+        </div>
+        <div class="hero-panel" aria-label="命盘输入">
+          <div class="mode-switch" role="tablist" aria-label="分析模式">
+            <button class="mode-button active" type="button" data-mode="single" role="tab" aria-selected="true">
+              <i data-lucide="user-round" aria-hidden="true"></i>
+              <span>单人命盘</span>
+            </button>
+            <button class="mode-button" type="button" data-mode="couple" role="tab" aria-selected="false">
+              <i data-lucide="users-round" aria-hidden="true"></i>
+              <span>双人合盘</span>
+            </button>
+          </div>
+          <form id="compatibility-form" class="people-grid">
+            <fieldset class="person-form" data-person="a">
+              <legend id="a-legend">本人</legend>
+              <label>
+                姓名
+                <input name="a-name" type="text" autocomplete="name" placeholder="甲方姓名" required />
+              </label>
+              <div class="field-row">
+                <label>
+                  性别
+                  <select name="a-gender" required>
+                    <option value="male">男</option>
+                    <option value="female">女</option>
+                  </select>
+                </label>
+                <label>
+                  出生地
+                  <input name="a-place" type="text" placeholder="省份 / 城市" />
+                </label>
+              </div>
+              <div class="field-row">
+                <label>
+                  阳历生日
+                  <input name="a-date" type="date" required />
+                </label>
+                <label>
+                  出生时间
+                  <input name="a-time" type="time" />
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="person-form" data-person="b" hidden>
+              <legend>乙方</legend>
+              <label>
+                姓名
+                <input name="b-name" type="text" autocomplete="name" placeholder="乙方姓名" />
+              </label>
+              <div class="field-row">
+                <label>
+                  性别
+                  <select name="b-gender">
+                    <option value="female">女</option>
+                    <option value="male">男</option>
+                  </select>
+                </label>
+                <label>
+                  出生地
+                  <input name="b-place" type="text" placeholder="省份 / 城市" />
+                </label>
+              </div>
+              <div class="field-row">
+                <label>
+                  阳历生日
+                  <input name="b-date" type="date" />
+                </label>
+                <label>
+                  出生时间
+                  <input name="b-time" type="time" />
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="actions">
+              <button class="ghost-button" type="button" id="sample-button" data-tooltip="载入示例">
+                <i data-lucide="sparkles" aria-hidden="true"></i>
+                <span>示例</span>
+              </button>
+              <button class="primary-button" type="submit" id="submit-button" data-tooltip="生成分析">
+                <i data-lucide="scan-line" aria-hidden="true"></i>
+                <span>生成命盘</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section id="results" class="results" hidden>
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" id="report-eyebrow">Personal Report</p>
+            <h2 id="report-title">个人命盘</h2>
+          </div>
+          <button class="icon-button" type="button" id="print-button" aria-label="打印报告" data-tooltip="打印报告">
+            <i data-lucide="printer" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div class="score-grid" id="score-grid"></div>
+
+        <div class="chart-layout">
+          <article class="chart-card">
+            <div class="card-heading">
+              <h3 id="chart-a-title">甲方命盘</h3>
+              <span id="chart-a-tag"></span>
+            </div>
+            <div id="chart-a" class="pillar-table"></div>
+          </article>
+          <article class="chart-card" id="chart-b-card" hidden>
+            <div class="card-heading">
+              <h3 id="chart-b-title">乙方命盘</h3>
+              <span id="chart-b-tag"></span>
+            </div>
+            <div id="chart-b" class="pillar-table"></div>
+          </article>
+        </div>
+
+        <div class="report-layout">
+          <article class="report-main">
+            <h3 id="summary-title">命盘结论</h3>
+            <div id="summary-block" class="summary-block"></div>
+          </article>
+          <aside class="report-side">
+            <h3 id="fit-title">适合的点</h3>
+            <ul id="fit-list" class="fit-list"></ul>
+          </aside>
+        </div>
+
+        <div class="detail-grid">
+          <article>
+            <h3 id="relation-title">命局触发点</h3>
+            <ul id="relation-list" class="analysis-list"></ul>
+          </article>
+          <article>
+            <h3 id="risk-title">需要留意</h3>
+            <ul id="risk-list" class="analysis-list"></ul>
+          </article>
+        </div>
+
+        <article class="insight-section">
+          <h3>职业与发展方向</h3>
+          <div id="career-grid" class="insight-grid"></div>
+        </article>
+
+        <div class="detail-grid" id="work-section">
+          <article>
+            <h3>事业生活合适点</h3>
+            <ul id="work-fit-list" class="analysis-list"></ul>
+          </article>
+          <article>
+            <h3>事业生活不合适点</h3>
+            <ul id="work-risk-list" class="analysis-list"></ul>
+          </article>
+        </div>
+
+        <article class="insight-section">
+          <div class="section-heading compact">
+            <h3>西方星座辅助</h3>
+            <span>太阳星座参考</span>
+          </div>
+          <div id="zodiac-grid" class="insight-grid"></div>
+          <div id="zodiac-summary" class="summary-block"></div>
+        </article>
+
+        <article class="insight-section">
+          <div class="section-heading compact">
+            <h3 id="curve-title">人生发展曲线</h3>
+            <span>掌纹式趋势参考</span>
+          </div>
+          <div id="life-curves" class="curve-panel"></div>
+        </article>
+
+        <article class="timeline-section">
+          <h3 id="timeline-title">近年发展节奏</h3>
+          <div id="timeline" class="timeline"></div>
+        </article>
+
+        <p class="notice">命理分析仅供文化研究和参考，不应替代个人选择、医学诊断、法律或财务建议。</p>
+      </section>
+    </main>
+  </body>
+</html>
